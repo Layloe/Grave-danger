@@ -119,6 +119,43 @@ app.get('/search', async (req, res) => {
     }
 })
 
+app.get('/getUpdateRecord', async (req,res) => {
+    const memorialID = req.query.memorialID
+
+    let query = supabase
+    .from('grave_registry')
+    .select(`
+    name_last,
+    name_maiden,
+    name_first,
+    name_middle,
+    title,
+    birth_date,
+    death_date,
+    age,
+    is_veteran,
+    section,
+    lot,
+    moved_from,
+    moved_to_lot,
+    notes
+    `)
+    .eq('memorial_ID', memorialID)
+
+    try {
+        let {data, error} = await query
+        if (error) {
+            throw error
+        }
+        let dataObject = data[0]
+        if (data) {
+            res.render('update', {record: dataObject})
+        } else {
+            res.render('update', {record: null, message:'No matching record found. Please check the value and try again.'})
+        }
+    }
+})
+
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
