@@ -153,8 +153,39 @@ app.get('/getUpdateRecord', async (req,res) => {
         } else {
             res.render('update', {record: null, message:'No matching record found. Please check the value and try again.'})
         }
+    } catch (error) {
+        console.error('Error:', error.message)
     }
 })
+
+app.post('/updateRecord', async (req,res) => {
+    if (req.session.authenticated) {
+        try {
+            const updatedData = await updateRecordInSupabase(req,body)
+            res.render('update', {record: null, message: 'Record Updated Successfully'})
+        } catch (error) {
+            console.error('Error updating record:', error)
+            res.render('update', {record: null, message: 'Error Updating Record. Please try again.' })
+        }
+    } else {
+        res.render('login')
+    }
+})
+
+async function updateRecordInSupabase(formData) {
+    try {
+        const recordId = formData.memorialID
+        delete formData.memorialID
+        const {data, error} = await supabase
+            .from('grave_registry')
+            .update(formData)
+            .eq('memorial_ID', recordId)
+            if (error) throw error
+    } catch (error) {
+        console.error('Error updating record in Supabase:', error);
+        throw error; // Rethrow the error to be handled by the calling function
+    }
+}
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
